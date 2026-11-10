@@ -36,6 +36,8 @@ export function createInvitationController(
   const checkpoints: Record<string, number> = { flap: .55, extraction: .95, reveal: 2.25, "expansion-early": 3.35, "expansion-mid": 3.65, "expansion-late": 4, pan: 4.4 };
   const reducedMotion = () => motion.matches || checkpoint === "reduced-motion";
   const previousScene = restoredScene(window.history.state);
+  const isReload = window.performance?.getEntriesByType("navigation")
+    .some((entry) => (entry as PerformanceNavigationTiming).type === "reload") ?? false;
   let state: InvitationState = "full";
   let disposed = false;
   let run = 0;
@@ -326,7 +328,15 @@ export function createInvitationController(
   try {
     if (checkpoint === "initialization-failure") throw new Error("QA: animation initialization failure");
     fullHeight();
-    if (window.location.hash === "#invitation" || previousScene || window.scrollY > 80) full();
+    if (isReload) {
+      if (window.location.hash === "#invitation") {
+        try {
+          window.history.replaceState(window.history.state, "", `${window.location.pathname}${window.location.search}`);
+        } catch { /* A restricted history must not block the invitation. */ }
+      }
+      resetClosed(false);
+      window.scrollTo({ top: 0, behavior: "instant" });
+    } else if (window.location.hash === "#invitation" || previousScene || window.scrollY > 80) full();
     else resetClosed(false);
   } catch (error) {
     cancelRun(); restoreAnchoring(); removeListeners();

@@ -76,12 +76,12 @@ class ElementStub extends EventTarget {
   querySelector(selector) { return active.elements[selector]; }
   querySelectorAll() { return []; }
 }
-function fixture({ reduced = false, history = null, scrollY = 0 } = {}) {
+function fixture({ reduced = false, history = null, scrollY = 0, navigation = "navigate", hash = "", search = "" } = {}) {
   const elements = Object.fromEntries([".experience-stage", ".card-frame", "[data-envelope-shell]", "[data-envelope-flap]", "[data-envelope-seal]", "[data-open]", ".extras-wrapper", ".envelope-accessibility", "[data-confetti]", ".envelope-foliage-wrap", ".envelope-intro", ".envelope-cue"].map(key => [key, new ElementStub()]));
   elements["[data-envelope-shell]"].kind = "shell";
   elements["[data-open]"].kind = "button";
   const win = new EventTarget();
-  Object.assign(win, { innerHeight:844, scrollY, location:{search:"",hash:""}, history:{state:history, replaceState(value) { this.state = value; }}, scrollTo({top}) { this.scrollY = top; active.scrollWrites.push(top); } });
+  Object.assign(win, { innerHeight:844, scrollY, location:{pathname:"/",search,hash}, performance:{getEntriesByType:() => [{type:navigation}]}, history:{state:history, replaceState(value, _, url) { this.state = value; if (url) { const parsed = new URL(url, "https://example.test"); Object.assign(win.location, {pathname:parsed.pathname,search:parsed.search,hash:parsed.hash}); } }}, scrollTo({top}) { this.scrollY = top; active.scrollWrites.push(top); } });
   const motion = new EventTarget(); motion.matches = reduced; win.matchMedia = () => motion;
   const doc = new EventTarget(); Object.assign(doc, { documentElement: new ElementStub(), activeElement:null, createElement:() => new ElementStub(), hidden:false });
   Object.assign(globalThis, { window:win, document:doc, Element:ElementStub, getComputedStyle:() => style(), requestAnimationFrame:callback => { const id = ++active.frameId; active.frames.set(id, callback); return id; }, cancelAnimationFrame:id => active.frames.delete(id) });
@@ -181,6 +181,37 @@ test("reduced motion and legacy history restore directly to the full accessible 
       assert.equal(f.elements[".extras-wrapper"].hidden,false);
       assert.equal(f.data.card.attributes["aria-hidden"],"false");
       if (options.history) assert.equal(f.win.history.state.__NA,true);
+    } finally { f.controller.dispose(); }
+  }
+});
+
+test("reload resets saved scenes, scroll and invitation anchors while preserving router state and query", () => {
+  for (const options of [
+    { history:{__NA:true,__zunainInvitation:"full"} },
+    { history:{__NA:true,__zunainInvitation:"reveal"} },
+    { history:{__NA:true,__zunainInvitation:"full"}, scrollY:400 },
+    { history:{__NA:true,__zunainInvitation:"full"}, scrollY:400, hash:"#invitation", search:"?guest=1" },
+  ]) {
+    const f = fixture({...options, navigation:"reload"});
+    try {
+      assert.equal(f.root.dataset.state,"closed");
+      assert.equal(f.win.scrollY,0);
+      assert.equal(f.win.location.hash,"");
+      assert.equal(f.win.location.search,options.search ?? "");
+      assert.deepEqual(f.win.history.state,{__NA:true});
+      assert.equal(f.elements[".extras-wrapper"].hidden,true);
+      assert.equal(f.data.card.attributes["aria-hidden"],"true");
+    } finally { f.controller.dispose(); }
+  }
+});
+
+test("direct invitation links and history navigation still restore the full card", () => {
+  for (const options of [{hash:"#invitation"}, {navigation:"back_forward", history:{__NA:true,__zunainInvitation:"full"}, scrollY:200}]) {
+    const f = fixture(options);
+    try {
+      assert.equal(f.root.dataset.state,"full");
+      assert.equal(f.win.scrollY,options.scrollY ?? 0);
+      assert.equal(f.elements[".extras-wrapper"].hidden,false);
     } finally { f.controller.dispose(); }
   }
 });
