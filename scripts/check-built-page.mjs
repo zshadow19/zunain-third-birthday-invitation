@@ -8,7 +8,9 @@ assert.match(html, /class="invitation-experience" data-state="full" data-enhance
 assert.match(html, /class="card-frame"[^>]*id="invitation"[^>]*aria-hidden="false"/);
 assert.equal((html.match(/class="invitation-artwork"/g) || []).length, 1);
 assert.match(html, /class="extras-wrapper">/);
-assert.match(html, /href="#invitation"/);
+assert.doesNotMatch(html, /data-continue|View full invitation|View your invitation/);
+assert.equal((html.match(/class="envelope-trigger"/g) || []).length, 1);
+assert.equal((html.match(/data-replay=/g) || []).length, 1);
 assert.match(html, /2026-11-21T18:30:00\+06:00/);
 assert.match(html, /https:\/\/www.google.com\/maps\/dir\/\?api=1/);
 assert.match(html, /property="og:image"/);
@@ -18,4 +20,4 @@ const metadata = await sharp("public/social-preview.jpg").metadata();
 assert.equal(metadata.width, 1200); assert.equal(metadata.height, 630);
 const master = await readFile("public/dinosaur_jungle_birthday_invitation_artwork.png");
 assert.equal(createHash("sha256").update(master).digest("hex"), "59a0a00edadde1d01d401a8d8a58dafd727129d83f66d2e292fc39d12f911ded");
-console.log("Built HTML: one full, accessible card; event, directions, fallback anchors, and sharing metadata present. Social dimensions and unchanged original artwork verified.");
+console.log("Built HTML: one full accessible card, one envelope target, one Replay, event/directions and sharing metadata; no redundant navigation. Social dimensions and unchanged original artwork verified.");

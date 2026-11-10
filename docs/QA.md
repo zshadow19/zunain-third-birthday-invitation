@@ -2,62 +2,60 @@
 
 ## Automated checks
 
-- `npm test`: timezone conversion, countdown rollover/zero clamp, duplicate-transition guards, recovery/replay transitions, and completed-scene history decoding.
-- `npm run typecheck`: TypeScript passes.
-- `npm run build`: production build passes; the invitation is prerendered as static content.
-- `node scripts/check-built-page.mjs`: verifies one server-rendered, full-height, accessible invitation; fallback anchors; event timestamp; directions; canonical/Open Graph/Twitter metadata; 1200 × 630 preview; and the unchanged original PNG checksum.
+- `npm test`: **13 passing tests**, including the real controller against deterministic DOM/GSAP adapters. Covers automatic progression/hold, duplicate activation, wheel/keyboard interruption in all phases, the 10 CSS-pixel touch threshold, extraction-started presses, card-tap skipping after reveal, stale callbacks, replay during transitions, reduced motion, legacy history, background recovery, motion changes, asynchronous animation failure, watchdog recovery, and disposal. The adapters verify behavior and cleanup; browser checks verify actual GSAP rendering and layout.
+- `npm run typecheck`: passes.
+- `npm run lint`: passes without warnings; the existing masthead anchor error is fixed.
+- `npm run build`: passes; the page remains statically prerendered. The sandbox blocked worker creation with `spawn EPERM`; the same build and tests passed outside the sandbox.
+- `node scripts/check-built-page.mjs`: passes. Confirms one full accessible server-rendered card, one native envelope target, one Replay, no Continue/bypass navigation, preserved event/directions/social metadata, 1200 × 630 preview dimensions, and the unchanged original PNG checksum.
 
-## Browser verification
+## Local browser verification
 
-Verified in the Codex in-app Chromium browser on Windows, using explicit CSS viewport sizes. These are browser viewport checks, not physical-device or touch-hardware validation.
+Verified in the Codex in-app Chromium browser on Windows against local development and production servers. Explicit viewport overrides are browser layout checks, not physical-device or touch-hardware tests.
 
-| Scenario | Result |
+| Scenario | Observed result |
 | --- | --- |
-| 320, 375, 390, 430, 480 × 844 | Production reveal checked at all five widths. One card, natural image ratio, no horizontal overflow, full 3 and hat visible, event details concealed, Continue reachable. |
-| 1000 × 1000 desktop | Card capped at 480 px and centered in the usable viewport. |
-| 568 × 320 landscape | Controls reachable through native scrolling; Continue completes and the full invitation remains scrollable. |
-| Original artwork | Preserved file hash; no image filtering, retyping, reconstruction, or distortion. |
-| Opening and layering | Seal releases, flap opens behind the card, pocket stays in front during extraction, envelope fades as the card emerges. |
-| Reveal boundary | `0.52` visually accepted; small whitespace remains below the entire 3 and no printed event details appear. |
-| Completed reveal | Stationary until Continue; rapid double-click opens once and produces a single 20-piece confetti burst. |
-| Guided pan | Expansion and pan overlap; final screenshot places the printed date and venue near the top. Card width remains unchanged. |
-| Wheel and keyboard interruption | Development pan fixture immediately enters `full`, clears animation styles, and leaves native scrolling active. |
-| Replay during confetti | Confetti removed immediately, scroll restored to zero, Tap to Open receives focus, and later callbacks do not advance the scene. |
-| Replay during guided pan | Paused pan fixture returns immediately to `closed`, removes confetti, restores scroll zero, and focuses Tap to Open. |
-| Resize / bypass during extraction | Both recover to a full readable card, with the opening timeline cancelled. |
-| Initialization failure | Development failure fixture leaves one full-height card and working native fallback anchors; body overflow remains unrestricted. |
-| Reduced motion | Forced development branch verified without confetti or guided pan, with both deliberate interactions usable. Actual OS preference integration still needs a device check. |
-| Browser history | In the final production build, leaving for the local social image and using Back restores both `reveal` and `full`; restored reveal does not replay confetti. The existing entry is updated without adding scene navigation entries. Additional browser engines remain in the device checklist. |
-| Directions | Link has the venue-name destination and `api=1`; the floor is displayed separately. Destination pin/app handoff requires device verification. |
+| Envelope activation | Footprint seal, envelope surface, Enter, and Space open the invitation. The envelope is one named native button. Rapid repeated taps leave one opening sequence. |
+| Extraction | Paused 0.95-second checkpoint shows the card behind the front pocket and the flap behind the card. No abrupt card handoff was observed during local playback. |
+| Flap orientation repair | Corrected the reverse face from `rotateX(180deg)` to `rotateY(180deg)`. Checked closed, partially rotated, fully open (new 0.55-second checkpoint), and extraction states at 390 × 844 and 1000 × 900. The wide base remains attached to the envelope top edge and the tip extends upward. Reverse-face visibility and pocket/card overlap remain correct; no clipping or flicker was observed in local playback. |
+| Flap interruption / Replay | Three keyboard-interrupted opening/Replay cycles returned the flap transform to `none`, the scene to `closed`, and scroll to zero. Existing transition timing and interruption tests still pass. |
+| Automatic production playback | Sampled at approximately 0.28-second intervals: birthday reveal first observed at 2.06 s, still stationary at 3.20 s; expanding by 3.48 s; pan underway by 3.76 s; full scene by 5.20 s. Timeline endpoints are 2.0 / 3.25 / 3.65 / 5.1 s. |
+| Card continuity/confetti | Card width stayed approximately 343.2 CSS px from reveal through completion in the 390 px test viewport. Exactly 20 confetti elements appeared once and were removed before expansion. |
+| Incidental taps | Card/decorative taps during the extraction checkpoint leave the scene opening. Card taps after reveal/expansion immediately expose the full card. |
+| Scroll interruption | Native wheel input and keyboard scrolling interrupt playback. PageDown then leaves native scrolling active; no later scroll movement was observed after the native scroll settled. |
+| Interrupted expansion anchoring | Card-tap interruption at 3.35, 3.65, 4.0, and 4.4 s: scroll positions respectively 0, 0, 28, and 272 CSS px remained exactly unchanged after settling to full height. Card document-top stayed at 106 CSS px. Temporary anchoring styles were removed. |
+| Responsive reveal | Checked 320 × 844, 375 × 667, 390 × 844, 430 × 932, 480 × 844, 1000 × 1000, 568 × 320, and 320 × 480. One artwork image; no horizontal overflow; width remains readable in landscape; native scrolling remains available. Desktop card cap is 480 CSS px. |
+| Replay | Single final-action control resets scroll to zero, restores envelope geometry, and focuses the envelope. No playback Replay control is present. Transition-time replay/stale callback cancellation is covered by controller tests. |
+| Reduced motion | Development preference fixture opens directly to full with zero confetti and no pan. Actual OS preference and live preference changes require a device check. |
+| Failure fallback | Initialization-failure fixture leaves the complete original card and event actions visible. No envelope interaction is required to access the static card. |
+| Production restoration | Navigating from the completed production page to its social-preview image and using Back restored `full` and the exact 494.4 CSS-pixel scroll position, with no confetti. Legacy reveal-entry normalization is also covered by controller tests. |
+| Accessibility | Accessible DOM snapshots show one named envelope button while closed, the image after reveal, focus on the card when the opener disappears, and one Replay after full availability. Live status no longer mentions Continue. Countdown retains `aria-live="off"`. |
+| Artwork/event data | Original checksum, aspect ratio, timestamp, image alt text, venue, and directions destination remain preserved. |
 
-The closed and replayed 390 px captures were compared after returning to the same geometry. Small JPEG/focus rasterization differences are expected; replay restores the layout and scroll position. Intermediate extraction uses a paused GSAP timeline label for repeatability.
+## Current captures
 
-## Saved visual checkpoints
+- [Closed/replayed envelope](qa/refined-envelope-390.png)
+- [Corrected fully opened flap, mobile](qa/refined-flap-390.png)
+- [Corrected fully opened flap, desktop](qa/refined-flap-desktop.png)
+- [Extraction checkpoint](qa/refined-extraction-390.png)
+- [Birthday reveal](qa/refined-reveal-390.png)
+- [Production final scene](qa/refined-final-390.png)
 
-| Checkpoint | File |
-| --- | --- |
-| Closed envelope | [01-closed-envelope-390.jpg](qa/01-closed-envelope-390.jpg) |
-| Extraction at 0.85 seconds, development fixture | [02-card-extraction-390.jpg](qa/02-card-extraction-390.jpg) |
-| Completed birthday reveal, confetti finished | [03-birthday-reveal-390.jpg](qa/03-birthday-reveal-390.jpg) |
-| Guided-pan destination | [04-guided-pan-destination-390.jpg](qa/04-guided-pan-destination-390.jpg) |
-| Card bottom and extras | [05-card-bottom-and-extras-390.jpg](qa/05-card-bottom-and-extras-390.jpg) |
-| Replayed envelope | [06-replayed-envelope-390.jpg](qa/06-replayed-envelope-390.jpg) |
+Earlier numbered JPG captures in `docs/qa/` document the former manual Continue flow; they are historical references, not evidence for this revision.
 
-Additional width captures, the desktop and landscape views, and the initialization-failure fallback are in `docs/qa/`. The social composition is `public/social-preview.jpg`. Development captures may include the Next.js development indicator; production captures do not.
+The extraction capture was refreshed after the flap repair. During this check the existing development server initially retained the old generated CSS despite reporting recompilation; restarting it regenerated the corrected reverse-face transform. Flap verification and captures above use the fresh preview.
 
 ## Verification limits and physical-device checklist
 
-JavaScript-disabled **server HTML** is verified, and controller-initialization failure is exercised in the browser. A real browser run with JavaScript disabled was not completed: native Chrome access approval timed out. Do not treat the failure fixture as a JavaScript-disabled browser test.
+The 10 CSS-pixel touch threshold is verified through controller event tests. Real touch hardware, scroll momentum, iOS/Android viewport behavior, and screen-reader announcements were not verified locally. JavaScript-disabled access is verified in built server HTML; a browser run with JavaScript disabled remains pending. Initialization failure is a separate browser-tested case.
 
-After deployment, record device, OS, app version, production URL, date, and pass/fail for each item below. All physical-device checks remain **pending**.
+All physical-device checks remain pending:
 
-- iOS Safari, WhatsApp, and Messenger: envelope opening; readable stationary reveal; Continue; touch-drag cancellation; native scrolling to the card bottom; safe-area and collapsing browser-toolbar behavior.
-- Android Chrome, WhatsApp, and Messenger: the same flow, including back/forward return from Maps and portrait/landscape changes during opening and pan.
-- Enable the device’s reduced-motion preference; verify that no confetti or guided pan occurs and every control remains usable.
-- Disable JavaScript in a browser and reload the production page; use the static anchors, read the entire artwork, and open directions.
-- Use keyboard navigation and a screen reader; check focus transfer, visible focus, event text, and the absence of per-second countdown announcements.
-- Try rapid taps, replay while confetti/pan is active, background/resume, slow artwork loading, failed controller loading, and browser back/forward restoration.
-- Confirm the directions pin is the intended Lakeshore Heights entrance and that the floor instruction remains visible.
-- Confirm the public canonical URL and social-preview image after setting `SITE_URL`, then inspect an actual WhatsApp/Messenger link preview. Platform caches may retain an earlier image.
+- iOS Safari and Android Chrome, plus WhatsApp/Messenger in-app browsers: full-envelope hit target, touch gesture interruption, momentum scrolling, safe areas, and collapsing browser toolbars.
+- Deliberate touch movement below/above 10 CSS px during every phase; confirm that animation never fights the gesture. Try rapid taps and a press beginning during extraction and ending after reveal.
+- Short portrait/landscape screens: announcement stays readable without excessive shrinking, event details remain reachable, and rotation/background/resume recovers safely.
+- OS reduced-motion preference: no confetti or animated scrolling; verify preference changes during playback.
+- Keyboard and VoiceOver/TalkBack: focus order/transfer, visible focus, live status, event alt text, and quiet countdown.
+- JavaScript disabled, slow/failed image decode, and failed animation-module loading: full card and directions remain usable.
+- Back/forward restoration across browsers and Maps app handoff; verify the correct Lakeshore Heights entrance and ninth-floor instruction.
 
-No live Vercel deployment or physical-device validation was performed as part of this delivery.
+No deployment or physical-device validation was performed for this revision.

@@ -15,8 +15,7 @@ export function EventExtras({ active, timerEpoch, onReplay }: { active: boolean;
   }, [active, timerEpoch]);
   return (
     <section className="event-extras" aria-labelledby="countdown-title">
-      <span className="eyebrow">THE NEXT BIG LITTLE ADVENTURE</span>
-      <h2 id="countdown-title">Almost time to <em>roar.</em></h2>
+      <h2 id="countdown-title">Counting down to the celebration</h2>
       {countdown?.complete ? <p className="party-time">It’s party time!</p> : (
         <div className="countdown" role="timer" aria-live="off" aria-label={countdown ? `${countdown.days} days, ${countdown.hours} hours, ${countdown.minutes} minutes, ${countdown.seconds} seconds until the party` : "The party starts on 21 November 2026 at 6:30 PM, Dhaka time"}>
           {(["days", "hours", "minutes", "seconds"] as const).map((unit) => <div key={unit}><span>{countdown ? String(countdown[unit]).padStart(2, "0") : "—"}</span><small>{unit}</small></div>)}

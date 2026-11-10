@@ -16,20 +16,22 @@ Open the Local URL printed by Next.js. If port 3000 is occupied, Next.js chooses
 ```sh
 npm test
 npm run typecheck
+npm run lint
 npm run build
 node scripts/check-built-page.mjs
 npm start
 ```
 
-`npm test` checks Dhaka-time conversion, countdown boundaries, transition guards, recovery/replay paths, and safe browser-history restoration. `check-built-page.mjs` requires a completed build and verifies the server-rendered fallback, one original card, social metadata, preview dimensions, and the artwork checksum.
+`npm test` checks countdown boundaries and controller progression, interruption, recovery, replay cleanup, and history restoration using deterministic DOM/GSAP adapters. `check-built-page.mjs` requires a completed build and verifies the full server-rendered fallback, one original card, one envelope target/Replay, social metadata, preview dimensions, and the artwork checksum.
 
 ## Experience and configuration
 
 - `app/lib/invitation.ts` contains event details and normalized artwork coordinates. `revealFraction` starts at **0.52**, visually checked to include the entire 3 and party hat while excluding the printed event details. `detailsFraction` starts at **0.57** and positions the printed date near the top after the pan.
 - The client controller follows `closed → opening → reveal → expanding → full`. One card element is reused throughout; clipping changes around an undistorted image. The measured envelope-to-card handoff uses uniform transforms.
-- Continue expands the wrapper over 0–0.45 seconds and begins a pan at 0.25 seconds, completing around 1.3 seconds. Touch drag, wheel, or scrolling keys immediately cancel the pan. There is no body scroll lock, pinning, or snapping. Completed scenes are remembered on the existing browser-history entry, preserving Next.js router fields and adding no navigation steps. Replay clears that scene marker.
-- Reduced motion skips extraction, confetti, and guided scrolling while preserving both deliberate interactions. Replay cancels the current animation run and restores the envelope, initial geometry, scroll, and keyboard focus.
-- Server-rendered HTML contains the full card and event extras. JavaScript progressively enables the staged presentation only after image decoding and controller loading succeed. Initialization failure leaves the static introduction, anchors, full card, and directions available.
+- The whole envelope and seal form one native button. One guarded GSAP sequence extracts/settles the card by 2.0 seconds, holds the birthday reveal until 3.25 seconds, expands over 3.25–4.05 seconds, and pans over 3.65–5.1 seconds. Card width stays unchanged after settling; short screens use native scrolling.
+- Wheel and scrolling keys immediately cancel playback; touch movement interrupts at 10 CSS pixels. Taps can skip only after extraction completes, and decorative taps do nothing. Interruption exposes the full card without a deferred scroll correction. There is no scroll lock, pinning, or snapping. History updates preserve router fields and add no entries; previous reveal/full entries restore the full card.
+- Reduced motion opens the full invitation immediately without confetti or guided scrolling. One Replay control appears with the final actions. Replay cancels the current run and restores envelope geometry, scroll, history, and keyboard focus.
+- Server-rendered HTML contains the full card and event extras. JavaScript progressively enables the envelope only after image decoding, controller loading, and rendered-layout measurement succeed. Initialization failure leaves the full card and directions directly available.
 - The countdown targets **2026-11-21T18:30:00+06:00**, independent of the guest’s timezone. At zero it shows “It’s party time!” The directions link uses the venue name; the ninth-floor instruction remains visible separately.
 
 ## Vercel setup
@@ -58,8 +60,13 @@ See `docs/QA.md` and `docs/qa/` for saved checkpoints and verification limits. D
 
 | Local URL suffix | Action and expected state |
 | --- | --- |
-| `/?checkpoint=extraction` | Tap to Open; freeze the opening timeline at its 0.85-second extraction label. |
-| `/?checkpoint=pan` | Open, then Continue; freeze at 0.65 seconds for scroll-intent and replay checks. |
+| `/?checkpoint=flap` | Open the envelope; freeze the fully opened flap at 0.55 seconds. |
+| `/?checkpoint=extraction` | Open the envelope; freeze extraction at 0.95 seconds. |
+| `/?checkpoint=reveal` | Open; freeze at 2.25 seconds during the birthday hold. |
+| `/?checkpoint=expansion-early` | Open; freeze expansion at 3.35 seconds. |
+| `/?checkpoint=expansion-mid` | Open; freeze expansion at 3.65 seconds. |
+| `/?checkpoint=expansion-late` | Open; freeze expansion/pan at 4.0 seconds. |
+| `/?checkpoint=pan` | Open; freeze the guided pan at 4.4 seconds. |
 | `/?checkpoint=reduced-motion` | Exercise the reduced-motion branch without changing OS preferences. |
 | `/?checkpoint=initialization-failure` | Exercise the full static fallback after controller initialization fails. |
 

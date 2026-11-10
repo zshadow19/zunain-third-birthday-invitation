@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import artwork from "@/public/dinosaur_jungle_birthday_invitation_artwork.png";
 import { InvitationExperience } from "./components/invitation-experience";
 import { Footprint } from "./components/jungle-envelope";
@@ -8,7 +9,7 @@ export default function Home() {
     <main className="invitation-page">
       <h1 className="sr-only">Zunain’s third birthday</h1>
       <header className="masthead">
-        <a className="wordmark" href="/" aria-label="Zunain’s third birthday invitation"><Footprint /><span>ZUNAIN IS THREE</span></a>
+        <Link className="wordmark" href="/" aria-label="Zunain’s third birthday invitation"><Footprint /><span>ZUNAIN IS THREE</span></Link>
         <span className="masthead-date">21 . 11 . 2026</span>
       </header>
       <InvitationExperience>

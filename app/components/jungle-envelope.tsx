@@ -21,15 +21,13 @@ function Foliage({ side }: { side: "left" | "right" }) {
     </svg>
   );
 }
-export function JungleEnvelope() {
+export function JungleEnvelope({ onOpen, available }: { onOpen: () => void; available: boolean }) {
   return (
     <div className="envelope-stage">
       <div className="envelope-intro" data-envelope-part>
-        <span className="eyebrow">YOU’RE INVITED TO A WILD LITTLE PARTY</span>
-        <h2>A little roar.<br /><em>A big celebration.</em></h2>
-        <p>Something special is tucked inside.</p>
+        <h2>A little celebration awaits.</h2>
       </div>
-      <div className="envelope-shell" data-envelope-shell aria-hidden="true">
+      <div className="envelope-shell" data-envelope-shell>
         <div className="envelope-foliage-wrap" data-envelope-part><Foliage side="left" /><Foliage side="right" /></div>
         <div className="envelope-back paper-texture" data-envelope-part />
         <div className="envelope-flap" data-envelope-flap data-envelope-part><div className="flap-inner paper-texture" /></div>
@@ -37,8 +35,10 @@ export function JungleEnvelope() {
         <div className="envelope-pocket-edge" data-envelope-part />
         <div className="envelope-seal" data-envelope-seal data-envelope-part><Footprint /></div>
         <div className="envelope-address" data-envelope-part><span>for you</span><small>A VERY SPECIAL INVITATION</small></div>
+        <button type="button" className="envelope-trigger" data-open aria-label="Open Zunain’s birthday invitation" aria-disabled={!available} onClick={onOpen}>
+          <span className="envelope-cue" data-envelope-part aria-hidden="true">Tap to open <span>↑</span></span>
+        </button>
       </div>
-      <div className="envelope-caption" data-envelope-part><span className="tiny-leaf">✦</span> A little jungle magic awaits <span className="tiny-leaf">✦</span></div>
     </div>
   );
 }
