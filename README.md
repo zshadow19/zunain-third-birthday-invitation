@@ -32,7 +32,7 @@ npm start
 - Wheel and scrolling keys immediately cancel playback; touch movement interrupts at 10 CSS pixels. Taps can skip only after extraction completes, and decorative taps do nothing. Interruption exposes the full card without a deferred scroll correction. There is no scroll lock, pinning, or snapping. History updates preserve router fields and add no entries; previous reveal/full entries restore the full card.
 - Reduced motion opens the full invitation immediately without confetti or guided scrolling. One Replay control appears with the final actions. Replay cancels the current run and restores envelope geometry, scroll, history, and keyboard focus.
 - Server-rendered HTML contains the full card and event extras. JavaScript progressively enables the envelope only after image decoding, controller loading, and rendered-layout measurement succeed. Initialization failure leaves the full card and directions directly available.
-- The countdown targets **2026-11-21T18:30:00+06:00**, independent of the guest’s timezone. At zero it shows “It’s party time!” The directions link uses the venue name; the ninth-floor instruction remains visible separately.
+- The countdown targets **2026-11-21T18:30:00+06:00**, independent of the guest’s timezone. At zero it shows “It’s party time!” The directions link uses the venue name and street address; the ninth-floor instruction remains visible separately.
 
 ## Vercel setup
 
@@ -43,6 +43,10 @@ npm start
 5. After deployment, check the actual canonical and social-image URLs, directions destination, and the physical-device checklist in `docs/QA.md` before sharing.
 
 This delivery is deploy-ready. It does not create or publish a Vercel project.
+
+## Background music
+
+The supplied track is `public/audio/playful-joyful-audio.mp3`. It starts from the first envelope gesture, fades to 23% volume, and keeps its position through Replay. One small music toggle pauses/resumes it; playback failures never block the invitation. Initial load is silent and the MP3 is loaded on demand. See [music source, license, behavior, replacement instructions, and device checklist](docs/MUSIC.md).
 
 ## Artwork and social assets
 

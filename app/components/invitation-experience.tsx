@@ -4,10 +4,14 @@ import { JungleEnvelope } from "./jungle-envelope";
 import { EventExtras } from "./event-extras";
 import type { InvitationController } from "../lib/invitation-controller";
 import type { InvitationState } from "../lib/invitation";
+import { invitationMusic } from "../lib/invitation-music";
+import { useInvitationMusic } from "../lib/use-invitation-music";
+import { MusicToggle } from "./music-toggle";
 
 export function InvitationExperience({ children }: { children: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
   const controller = useRef<InvitationController | null>(null);
+  const { audioRef: musicAudioRef, status: musicStatus, startFromEnvelope, toggle: toggleMusic } = useInvitationMusic();
   const [view, setView] = useState<{ enhanced: boolean; state: InvitationState; epoch: number }>({ enhanced: false, state: "full", epoch: 0 });
   useEffect(() => {
     let cancelled = false;
@@ -32,10 +36,17 @@ export function InvitationExperience({ children }: { children: ReactNode }) {
     try { controller.current?.[action](); }
     catch { controller.current?.dispose(); controller.current = null; setView({ enhanced: false, state: "full", epoch: view.epoch + 1 }); }
   }
+  function openInvitation() {
+    if (!controller.current || root.current?.dataset.state !== "closed") return;
+    try { startFromEnvelope(); } catch { /* Audio must never block the invitation. */ }
+    safely("open");
+  }
   return (
     <div ref={root} className="invitation-experience" data-state={view.state} data-enhanced={view.enhanced}>
+      <audio ref={musicAudioRef} src={invitationMusic.src} preload="none" loop hidden aria-hidden="true" />
+      <MusicToggle status={musicStatus} onToggle={toggleMusic} />
       <div className="experience-stage">
-        <div className="envelope-accessibility" inert={!view.enhanced || (view.state !== "closed" && view.state !== "opening")}><JungleEnvelope available={view.enhanced && view.state === "closed"} onOpen={() => safely("open")} /></div>
+        <div className="envelope-accessibility" inert={!view.enhanced || (view.state !== "closed" && view.state !== "opening")}><JungleEnvelope available={view.enhanced && view.state === "closed"} onOpen={openInvitation} /></div>
         <div className="card-frame" id="invitation" tabIndex={-1} aria-label="Zunain’s third birthday invitation" aria-hidden={view.enhanced && (view.state === "closed" || view.state === "opening")}>{children}</div>
         <div className="confetti" data-confetti aria-hidden="true" />
       </div>

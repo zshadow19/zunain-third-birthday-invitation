@@ -7,6 +7,12 @@ const source = await readFile(new URL("../app/lib/invitation.ts", import.meta.ur
 const { outputText } = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ES2022 } });
 const { invitation, getCountdown, canTransition, restoredScene } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString("base64")}`);
 
+test("venue details and directions identify the complete Lakeshore Heights address", () => {
+  assert.equal(invitation.venue, "9th Floor, Lakeshore Heights, House 03, Road 126, Gulshan-1, Dhaka 1212, Bangladesh");
+  const directions = new URL(invitation.mapsUrl);
+  assert.equal(directions.searchParams.get("destination"), "Lakeshore Heights, House 03, Road 126, Gulshan-1, Dhaka 1212, Bangladesh");
+});
+
 test("the party timestamp represents 6:30 PM in Dhaka independently of the guest timezone", () => {
   assert.equal(new Date(invitation.startsAt).toISOString(), "2026-11-21T12:30:00.000Z");
   assert.match(new Intl.DateTimeFormat("en-GB", { timeZone: invitation.timeZone, hour: "2-digit", minute: "2-digit", hour12: false }).format(new Date(invitation.startsAt)), /18:30/);

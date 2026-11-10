@@ -8,8 +8,8 @@ export const invitation = {
   timeZone: "Asia/Dhaka",
   dateLabel: "Saturday, 21 November 2026",
   timeLabel: "6:30 PM · Dhaka time",
-  venue: "9th Floor, Lakeshore Heights, Gulshan 1, Dhaka",
-  mapsUrl: "https://www.google.com/maps/dir/?api=1&destination=Lakeshore+Heights%2C+Gulshan+1%2C+Dhaka",
+  venue: "9th Floor, Lakeshore Heights, House 03, Road 126, Gulshan-1, Dhaka 1212, Bangladesh",
+  mapsUrl: "https://www.google.com/maps/dir/?api=1&destination=Lakeshore+Heights%2C+House+03%2C+Road+126%2C+Gulshan-1%2C+Dhaka+1212%2C+Bangladesh",
 } as const;
 
 export type InvitationState = "closed" | "opening" | "reveal" | "expanding" | "full";

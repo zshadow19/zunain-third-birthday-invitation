@@ -14,7 +14,14 @@ button:focus-visible, a:focus-visible, [tabindex="-1"]:focus-visible { outline: 
 .masthead { max-width: 960px; margin: 0 auto; height: 82px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #43553a1c; }
 .wordmark { display: flex; align-items: center; gap: 9px; min-height: 44px; font-size: 10px; letter-spacing: .16em; font-weight: 600; }
 .wordmark svg { width: 26px; height: 26px; color: var(--orange); transform: rotate(-18deg); }
-.masthead-date { font-size: 10px; color: var(--muted); letter-spacing: .13em; }
+.masthead-date { font-size: 10px; color: var(--muted); letter-spacing: .13em; margin-right: 48px; }
+.music-toggle { position: fixed; top: max(12px, env(safe-area-inset-top)); right: env(safe-area-inset-right, 0px); z-index: 30; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--muted); touch-action: manipulation; }
+.music-toggle::before { content: ""; position: absolute; inset: 6px; border: 1px solid #637b4d30; border-radius: 50%; background: #f6f4ecf5; }
+.music-toggle[hidden] { display: none; }
+.music-toggle:focus-visible { outline-offset: -3px; }
+.music-toggle:hover { color: var(--ink); }
+.music-toggle:hover::before { background: #e9eddf; }
+.music-toggle svg { position: relative; width: 18px; height: 18px; }
 .invitation-experience { --safe-top: env(safe-area-inset-top, 0px); width: 100%; max-width: 480px; margin: 0 auto; }
 .text-button { border: 0; background: transparent; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 10px 8px; font-size: 11px; letter-spacing: .035em; color: var(--muted); }
 .text-button:hover { color: var(--ink); }

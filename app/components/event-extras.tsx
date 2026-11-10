@@ -26,7 +26,7 @@ export function EventExtras({ active, timerEpoch, onReplay }: { active: boolean;
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="m12 2 10 10-10 10L2 12 12 2Z" /><path d="M8 15v-4h8m-3-3 3 3-3 3" /></svg>
         Get directions <span aria-hidden="true">↗</span>
       </a>
-      <p className="venue-note">9th Floor, Lakeshore Heights<br />Gulshan 1, Dhaka</p>
+      <p className="venue-note">{invitation.venue}</p>
       <button className="text-button replay-button" onClick={onReplay} data-replay>↻ <span>Replay the invitation</span></button>
       <p className="closing-note">We can’t wait to celebrate with you.</p>
     </section>

@@ -2,11 +2,12 @@
 
 ## Automated checks
 
-- `npm test`: **13 passing tests**, including the real controller against deterministic DOM/GSAP adapters. Covers automatic progression/hold, duplicate activation, wheel/keyboard interruption in all phases, the 10 CSS-pixel touch threshold, extraction-started presses, card-tap skipping after reveal, stale callbacks, replay during transitions, reduced motion, legacy history, background recovery, motion changes, asynchronous animation failure, watchdog recovery, and disposal. The adapters verify behavior and cleanup; browser checks verify actual GSAP rendering and layout.
+- `npm test`: **29 passing tests**, including 13 music lifecycle tests and the existing invitation/countdown/address/restoration tests. Music checks cover initial silence, synchronous activation, rejected/throwing playback, volume fades, toggles, Replay preference, stale promises/queued pause events, visibility, blocked resumption, missing/decode failures, cleanup, and Strict Mode-style remounts. Invitation checks retain guarded progression, interruption, recovery, and history coverage. The adapters verify behavior and cleanup; browser checks verify actual media playback, GSAP rendering, and layout.
 - `npm run typecheck`: passes.
 - `npm run lint`: passes without warnings; the existing masthead anchor error is fixed.
 - `npm run build`: passes; the page remains statically prerendered. The sandbox blocked worker creation with `spawn EPERM`; the same build and tests passed outside the sandbox.
 - `node scripts/check-built-page.mjs`: passes. Confirms one full accessible server-rendered card, one native envelope target, one Replay, no Continue/bypass navigation, preserved event/directions/social metadata, 1200 × 630 preview dimensions, and the unchanged original PNG checksum.
+- Music build checks also confirm exactly one audio element with the supplied local source, no autoplay, `preload="none"`, one toggle, and a nonempty MP3 with a valid header. A production HTTP smoke check returned `200`, `audio/mpeg`, 4,829,100 bytes, and byte-for-byte equality with the supplied asset (SHA-256 recorded in [MUSIC.md](MUSIC.md)). Next.js serves public assets from `public/`; they are not expected to be copied into `.next/static`.
 
 ## Local browser verification
 
@@ -44,11 +45,30 @@ Earlier numbered JPG captures in `docs/qa/` document the former manual Continue 
 
 The extraction capture was refreshed after the flap repair. During this check the existing development server initially retained the old generated CSS despite reporting recompilation; restarting it regenerated the corrected reverse-face transform. Flap verification and captures above use the fresh preview.
 
+## Music verification
+
+Source, license, configuration, replacement instructions, and the audio-specific device checklist are in [MUSIC.md](MUSIC.md).
+
+| Scenario | Completed local verification |
+| --- | --- |
+| Initial silence | Development and production pages: media paused, time zero, ready state zero, one player, no autoplay, `preload="none"`. |
+| Trusted envelope activation | Mouse and Enter activation request audio while opening begins. Actual MP3 decoded to a duration of 150.909375 seconds, reached ready state 4, and currentTime advanced through opening/reveal/expansion/full. The scene completed normally; it did not wait for audio readiness. |
+| Volume/fades | Controller tests verify the 650 ms fade to 0.23 and 180 ms fade-out before pause. This is programmatic verification, not a physical-speaker loudness or listening test. |
+| Replay / pause preference | Playing Replay retained one player and increased time from 78.191461 to 78.281218 seconds. Pausing stopped media, and reopening the envelope kept it paused. Explicit Play resumed from the retained position. |
+| Rapid toggles / keyboard | Four rapid production toggles returned to playing with one player and preserved position. Space on the music button pauses/resumes independently of the invitation. Promise and queued-event races are covered in controller tests. |
+| Resize / placement | Checked 320 × 480, 390 × 844, 568 × 320, and 1000 × 900. Hit target stays 44 × 44 CSS px; the visible circle is 32 px. No horizontal overflow. Control remains fixed and clear of the key printed name/3/event copy in inspected scroll positions. Resizing retains one media element and track position. Real safe-area insets remain a device check. |
+| Reduced motion | Development reduced-motion fixture opened directly to full, with no confetti, while the MP3 reached ready state 4 and played normally after the envelope gesture. |
+| Background / blocked audio / missing media | Unit event tests verify pause/resume preference, blocked resumption, missing/decode errors, and resource cleanup. Real OS backgrounding, autoplay restrictions, and failed-network behavior remain device/browser checks; these were not simulated in the local production browser. |
+
+Captures: [short closed screen with control](qa/music-closed-320.png), [production invitation with control](qa/music-final-390.png).
+
 ## Verification limits and physical-device checklist
 
 The 10 CSS-pixel touch threshold is verified through controller event tests. Real touch hardware, scroll momentum, iOS/Android viewport behavior, and screen-reader announcements were not verified locally. JavaScript-disabled access is verified in built server HTML; a browser run with JavaScript disabled remains pending. Initialization failure is a separate browser-tested case.
 
 All physical-device checks remain pending:
+
+- Music: iOS Safari, Android Chrome, WhatsApp/Messenger in-app browsers; first-gesture activation, actual volume/fades, looping, rapid toggles, Replay, background/lock/return, rejected resumption, and failed/slow media. Confirm device volume behavior and accessible control placement. See the full list in [MUSIC.md](MUSIC.md).
 
 - iOS Safari and Android Chrome, plus WhatsApp/Messenger in-app browsers: full-envelope hit target, touch gesture interruption, momentum scrolling, safe areas, and collapsing browser toolbars.
 - Deliberate touch movement below/above 10 CSS px during every phase; confirm that animation never fights the gesture. Try rapid taps and a press beginning during extraction and ending after reveal.
